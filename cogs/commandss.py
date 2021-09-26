@@ -46,7 +46,7 @@ class Commands(commands.Cog):
 
 
 
-    @commands.command(aliases=["game", "oyun"])
+    @commands.command(aliases=["selamla"])
     async def greetings(self,ctx, *args):  # ctx demek context yani mesajın içeriği anlamına geliyor
         print(ctx)  # Bunu yazdırdığımızda <Message id=878026076855623711 channel=<TextChannel id=873962539......
         print(
@@ -58,9 +58,15 @@ class Commands(commands.Cog):
 
     @commands.command(aliases=["mesajlari_temizle"])
     @commands.has_role("admin")  # Bu kodla bu temizleme işlemini sadece admin rolüne sahip kullanıcı yababilecek
-    async def clear(self,ctx, amount=8):  # Bu method ile birlikte de bir kanaldaki mesajları silebileceğiz.
+    async def clear(self,ctx, amount):  # Bu method ile birlikte de bir kanaldaki mesajları silebileceğiz.
         await ctx.channel.purge(limit=amount)
         await ctx.channel.send(f"{amount} kadar mesaj bu kanaldan silinmiştir.")
+    @clear.error
+    async def clear_error(self,ctx,error):
+        print(error)
+        if isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send("Lütfen komutta gerekli boşlukları doldurun.")
+
 
     @commands.command(aliases=["sunucuyu_kopyala"])
     async def copy_channel(self,ctx, amount=1):
@@ -133,6 +139,7 @@ class Commands(commands.Cog):
     # Aşağıdaki kodlar coglar ve sınıflama ile alakalıdır.Amacımız bir python dosyası yüklemek.
     @commands.command(description="Mutes the specified user.")
     @commands.has_permissions(manage_messages=True)
+    @commands.has_role("admin")
 ############################              AlıntıKod         ###############################################
     async def mute(self,ctx, member: discord.Member, *, reason=None):
         guild = ctx.guild
@@ -153,6 +160,7 @@ class Commands(commands.Cog):
 
     @commands.command(description="Unmutes a specified user.")
     @commands.has_permissions(manage_messages=True)
+    @commands.has_role("admin")
     async def unmute(self,ctx, member: discord.Member):
         mutedRole = discord.utils.get(ctx.guild.roles, name="Muted")
 
@@ -161,6 +169,13 @@ class Commands(commands.Cog):
         embed = discord.Embed(title="unmute", description=f" unmuted-{member.mention}",
                               colour=discord.Colour.light_gray())
         await ctx.send(embed=embed)
+
+
+    @commands.command(description= "Adds reaction to the message that you've sent ")
+    @commands.has_permissions(manage_messages= True)
+    @commands.has_role("admin")
+    async def add_reaction(ctx,emoji = 0):
+        pass
 
 ################################      AlıntıKod        ####################
 def setup(bot):
