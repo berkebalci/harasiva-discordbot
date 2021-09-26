@@ -1,3 +1,5 @@
+# 1 # bilgi satırı ya da yorum
+# 4 # oranın geliştirilebileceğini gösterir.
 import discord
 from discord.ext import commands,tasks
 import os
@@ -5,7 +7,8 @@ from cogs import commandss
 
 # Aşağıdaki kodta amacımız serverdaki küfüleri engellemek
 
-intents = discord.Intents(messages=True, guilds=True, reactions=True, members=True, presences=True, guild_messages=True)
+intents = discord.Intents.all()
+
 # Intentsler botumuzla tam olarak ne yapmak istedğimizi belirten değişkenlerdir.
 # Bu modülde Intents adlı bir sınıf var ve böylece amacımızı belirtebiliyoruz.
 # Ve bunu da Bot(İlla Bot isimli sınıf olması gerekmez.Bot isimli sınıfın ebeveyni olan Client isimli sınıfı da yazabiliriz.)
@@ -13,6 +16,7 @@ intents = discord.Intents(messages=True, guilds=True, reactions=True, members=Tr
 
 
 client = commands.Bot(command_prefix= "!dc ",intents= intents)
+
 
 
 
@@ -29,6 +33,9 @@ swearword_count = dict()
 hata_ayiklama = dict()                            #Bu sözlüğü birlikte kullanıcıların banlanma durumlarında kullanacağiz.
 Oto_mute = 1                       #Botun mutelemesini açmak isteyenler için kolaylık.
 mod_names = []
+
+reaction_number1 = 0
+ext_file_types = ["jpeg","jpg","png","gif"]
 class Social:
     TWITTER = "https://twitter.com/"
     INSTAGRAM = "https://instagram.com/"
@@ -74,6 +81,7 @@ def getSocials() -> str:
     {Social.LINKEDIN}{all_social_medias.get("LINKEDIN")}
 """
 
+
 @client.event  # Bu decoratorları botumuza özellik eklemek için kullanıcaz.
 async def on_ready():  # Bu arada buradaki fonksiyonların isimleri önemli çünkü modülde bu fonksiyon isimleri ile decoratorlar
     # **birbirine bağlanıyorlar.
@@ -100,9 +108,6 @@ async def on_ready():  # Bu arada buradaki fonksiyonların isimleri önemli çü
 
 
 
-
-
-
 @client.command()
 async def stop_otomute(ctx):
     global Oto_mute
@@ -110,43 +115,60 @@ async def stop_otomute(ctx):
     print("Oto_mute has eveluated to 0")
 
 @client.event
-async def on_message(message):   #message.author.id ifadesinin türü int'dir. message.content 'str' döndürür.
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    if  (payload.channel_id == 890734899135393814):
+        channell = await client.fetch_channel(payload.channel_id)
+        messagee = await channell.fetch_message(payload.message_id)  #messagee'in türü Message isimli sınıfa obje.
+        for reaction in messagee.reactions:     # checks the reactant isn't a bot and the emoji isn't the one they just reacted with
+
+            if reaction_number1 >= 5  and not payload.member.bot and str(reaction) != str(payload.emoji):
+                # removes the reaction
+                await messagee.remove_reaction(reaction.emoji, payload.member)
+
+@client.event
+async def on_command_error(ctx,error):
+    await ctx.send(error)
+
+#commands.check() decorator'u aldığı fonksiyonun True mu False mu döndürdüğüne bakar.True döndürürse,onun altındaki method
+#**çalışır.False ise çalışmaz.
+
+@client.event
+async def on_message(message):
+    global reaction_number1
+    if len(message.attachments) > 0 and message.channel.name.startswith("questions"):
+        for ext in ext_file_types:
+            if message.attachments[0].filename.endswith(ext):
+                await message.add_reaction("🅰")
+                await message.add_reaction("🅱")
+                await message.add_reaction("🇨")
+                await message.add_reaction("🇩")
+                await message.add_reaction("🇪")
+                reaction_number1 = 5
+                break
+            ####Buraya ekstra şeyler eklenebilir
+# Bu modülde discord server'ına yüklenmiş mesajlar otomatikman tutturulur.# #Yükleme olmayan mesajlarda mesajlar tutturulmaz.
+#Yukarıdaki ifadenin çıktısı:
+#[<Attachment id=890718624325722132 filename='pp.jfif' url='https://cdn.discordapp.com/attachments/873962539975839784/890718624325722132/pp.jfif'>]
+
+
 
     global mod_names
     global swearword_count
     global badwords
     global Oto_mute
 
-
-
-
-      # Buradaki client ifadesi 12.satırdaki Bot isimli sınıfın bir objesidir.
-
-
-
-    # Ayrıca message.author.name kullanıcının string türünden ismini veriyor.
-
-
     if message.author == client.user:  # Burada eğer mesaj bot tarafından yazılıp yazılmadığını kontrol ediyor.
         await client.process_commands(message)
-
-
     else:
         if Oto_mute != 1:
             await client.process_commands(message)
         else:
             msg = message.content
-            #guild = message.channel
-            #member = discord.Member
 
 
             for x in badwords:
-
-
                 try:
                     if x in msg:
-
-
                         if hata_ayiklama[str(message.author.id)] == 0:
                             swearword_count[str(message.author.id)] += 1
                         if swearword_count[str(message.author.id)] > 5 and hata_ayiklama[str(message.author.id)] == 0:
@@ -184,29 +206,34 @@ async def on_member_remove(member):
 # Burada print(member) dediğimizde çıkan sonuç isim#.... ifadesi.
 # type(member) ifadesinde ise sonuç class 'discord.member.Member' oluyor.
 
-@client.command()
+@client.command(description= "Sends the message and repeat it according to your indicating" )
 async def send_timed_msg(ctx,*args):
-    text = ""
-    for x in args:
-        text = text + " " + x
-    await send_timed_messages.start(text)
+    interval = int(args[0])
+    count = int(args[1])
+    text = "".join(args[2:])
+
+    task = tasks.loop(seconds= interval, count= count)(send_timed_messages)
+#decoratorları illa @ ile kullanmamız gerekmez.
+    task.start(ctx, text)
 
 
     # Twitter = https://twitter.com/HaraSivaaa
     # Instagram = https://www.instagram.com/harasivaaa/?hl=tr
     # Youtube = https://www.youtube.com/channel/UCBlwzOXsdt8U8hIgIia-E-w
-#####################Çalışmayan Komut#######################
-@client.command()
-async def change_interval(*, minutes= 0):
 
-    send_timed_messages.change_interval(minutes= minutes)
-#######################Çalışmayan Komut######################
 
-@tasks.loop(minutes= 0.06,count= 2)  # Bu ifade ile birlikte aşağıdaki methodumuz loop'a giriyor ve belirttiğimiz aralıklarla tekrar çalışıyor.
-async def send_timed_messages(msg,time=0,count=0):  # count ifadesine verdiğimiz sayı kadar fonksiyon çalıştığında,fonksiyon çalışmayı durdurur
+  # Bu ifade ile birlikte aşağıdaki methodumuz loop'a giriyor ve belirttiğimiz aralıklarla tekrar çalışıyor.
+async def send_timed_messages(ctx,text,chan_id = 886984276342620170 ):  # count ifadesine verdiğimiz sayı kadar fonksiyon çalıştığında,fonksiyon çalışmayı durdurur
     for x in client.get_all_channels():
-        if x.id == 886984276342620170:
-            await x.send(msg)
+        if x.id == chan_id:
+            await x.send(text)
+
+guild_ids = [872889995248164935] # Put your server ID in this array.
+
+@client.command()
+async def _ping(ctx): # Defines a new "context" (ctx) command called "ping."
+    """Shows your ping in the server"""
+    await ctx.send(f"Pong! ({client.latency*1000}ms)")
 
 
 
