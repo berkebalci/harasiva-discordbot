@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import *
 import os
-import Utlissss
 import asyncio
 import aiohttp
 import random
@@ -10,26 +9,29 @@ import random
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!dc ", intents=intents)
 
-for bad in Utlissss.bad_words:
-    for bad_2 in bad:
-        badwords = bad_2.split(",")
+with open("Badwords.txt", "r", encoding="utf-8") as f:
+    for c in f:
+        badwords = c.split(",")
 
-swearword_count = dict()
-hata_ayiklama = dict()
-swear_time = dict()
-Oto_mute = 1
-num_swearwords = 3
-other_roles = []
-mod_roles = []
-owner_roles = []
+with open("Roless.txt", "r", encoding="utf-8") as file2:
+    liste = file2.read().split(";")
+    print(
+        liste)  # Bu rollerin falan yazdığı liste. #txt dosyasında aşağı satıra geçildiğinde önceki satırın sonuna \n konur
+    # Değişken isimleri ve satır numaraları
+    is_new = str(liste[0])
+    Oto_mute = str(liste[1])  # 1.eleman
+    num_swearwords = int(liste[2])  # 2.eleman
+    other_roles = liste[3].split(",")  # 3.
+    mod_roles = liste[4].split(",")  # 4.
+    owner_roles = liste[5].split(",")  # 5.
+    reaction_number = int(liste[6])  # 6.
 
-reaction_number1 = 0
 ext_file_types = ["jpeg", "jpg", "png", "gif"]
 
 
 @client.event
 async def on_ready():
-    print("I am ready")
+    print("I am ready!")
     await client.change_presence(activity=discord.Game(name="with the code"))
 
 
@@ -55,7 +57,7 @@ async def on_message(message):
     if message.author == client.user:
         await client.process_commands(message)
     else:
-        if Oto_mute != 1:
+        if Oto_mute != "on":
             await client.process_commands(message)
         else:
             msg = message.content
@@ -95,7 +97,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         messagee = await channell.fetch_message(payload.message_id)  # messagee'in türü Message isimli sınıfa obje.
         for reaction in messagee.reactions:  # checks the reactant isn't a bot and the emoji isn't the one they just reacted with
 
-            if reaction_number1 >= 5 and not payload.member.bot and str(reaction) != str(payload.emoji):
+            if reaction_number >= 5 and not payload.member.bot and str(reaction) != str(payload.emoji):
                 # removes the reaction
                 await messagee.remove_reaction(reaction.emoji, payload.member)
 
@@ -113,7 +115,7 @@ async def on_member_update(before, after):
         # The user has gained a new role, so lets find out which one
         newRole = next(role for role in after.roles if role not in before.roles)
         if newRole.name == "Muted":
-            await after.send("Next time be careful please :)")
+            await after.send("Your role has just become 'Muted'")
 
         elif newRole.id == 889933119875055716:
             await after.send("Congratulations!Your role has been upgraded to 'Mod'")
@@ -132,7 +134,7 @@ async def on_member_join(member):
     swearword_count[str(member.id)] = 0
     hata_ayiklama[str(member.id)] = 0
     swear_time[str(member.id)] = 0
-    await member.send("welcome to the server :D")
+    await member.send("Welcome to the server mate.Nice to see you :D")
 
 
 @client.event
@@ -166,15 +168,14 @@ async def commands():  # Bu Botta olan özellikleri gösteren komut olacak
 @client.command(description="For that command there are a few options"
                             "Playing xxx >>> !dc change_status 1 game_name"
                             "Listening xxx >>> !dc change_status 2 music_name"
-                            "Watching xxx >>> !dc change_status 3 video_name"
-                            "Streaming >>> !dc change_status 4 stream_name url= Link")
-async def change_status(ctx, activity, *, text, url=None):
+                            "Watching xxx >>> !dc change_status 3 video_name")
+async def change_status(ctx, activity, *, text):
     """Changes bot's status"""
     activities = {
         "1": {"activity": discord.Game(name=text)},
         "2": {"activity": discord.Activity(type=discord.ActivityType.listening, name=text)},
         "3": {"activity": discord.Activity(type=discord.ActivityType.watching, name=text)},
-        "4": {"activity:": discord.Streaming(name=text, url=url)}}
+    }
     # Görüldüğü gibi yukarıdaki iki methodta neredeyse aynıdır.Python burada parametrelere bakıyor,hangisinde argüman sayısı fazlaysa onu çalıştırıyor.
 
     await client.change_presence(**activities.get(activity))  # Böyle yaparak dict objesini unpack ettik.
@@ -423,7 +424,7 @@ async def place(ctx, pos: int):  # ctx.author != self.player1/2 ifadesine True d
             await ctx.send(f"{ctx.author},It is not your turn")
             await ctx.message.delete()
     else:
-        await ctx.send("Please start a new game by using '!dc tictactoe' command")
+        await ctx.send("Please start a new game by using '!dc start_tictactoe' command")
 
 
 def checkWinner(winningConditionss, markk):
@@ -514,15 +515,98 @@ def getSocials(self) -> str:
 
 ##############  Moderation #######################
 
+@client.command(description="For adding mod roles or more premium roles.!dc add_role mod role_name")
+async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args == role_name
+    """Adds roles so that bot can recognize the role.It is really important for using the commands."""
+    global is_new
+    guild = ctx.guild
+    if is_new == "new":
+
+        typpe = ""
+        if role_type == "mod":
+            typpe = "**"
+        elif role_type == "owner":
+            typpe = "++"
+        else:                                                                                              #IN PROGRESS
+            typpe = ""
+        with open("Roless.txt", "r+", encoding="utf-8") as file:
+            content = file.read()
+            file.seek(0)
+            file.truncate()  # Şu an dosya boş durumda
+            if multiple == "m" or multiple == "M":  # For multiple roles
+
+                roles = role_name.split(",")  # ["NAME","Adam"]
+                if len(roles) <= 1:
+                    await ctx.send(
+                        "On m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular) "
+                        "Please add ',' among every two roles you want to add.")
+                else:
+                    string = ""
+                    sayi = 0
+                    for x in roles:
+                        await guild.create_role(str(x))
+                        if not (roles[sayi + 1]):  # Bu durum son eleman için
+                            string += x
+                            file.write(content.replace("**", str(string)))
+
+                        else:
+                            string += x + ","
+                            sayi += 1
+
+                    await ctx.send("New roles has been added to bot's background")
+            elif multiple == "s" or multiple == "S":  # For single role
+                new_role = await guild.create_role(str(role_name))
+                if not new_role:
+                    new_role = await guild.create_role(str(role_name))
+                    await ctx.send("New role has been added to bot's background")
+                else:
+                    await ctx.send("New role has been added to bot's background.")
+            else:
+                file.write(content)
+
+
+    elif is_new == "no":
+
+        pass
+    else:
+        await ctx.send("Something went wrong!")
+
+
+
+
+@add_roles.error
+async def add_role_error(ctx, error):
+    if isinstance(error, MissingRequiredArgument):
+        await ctx.send("Input must be like that:!dc add_role mod m role1,role2,role3"
+                       "NOTE:"
+                       "In command 'mod' means that the role(s) will define as mod roles.So anyone who has this role would be able to access most of commands")
+    if isinstance(error, BadArgument):
+        await ctx.send(
+            "Input must be like that:!dc add_role mod m(this can be 's'(single) if you want to add one role) role1,role2,role3")
+
+
+@client.command()
+async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):
+    guild = ctx.guild
+
 
 @client.command(description="To use it !dc restart_otomute")
-@has_any_role(*mod_roles, *owner_roles)
 async def restart_automute(ctx):
     """Restarts the otomute"""
     global Oto_mute
-    Oto_mute = 1
-    print("Oto_mute has eveluated to 1")
-    await ctx.send("Oto mute is active")
+    if Oto_mute == "on":
+        await ctx.send("Oto mute is working already")
+    else:
+
+        with open("Roless.txt", "r+", encoding="utf-8") as f:
+            content = f.read()
+            f.seek(0)  # Burası değişkenleri değiştrmek için kullandığımız yer.
+            f.truncate()
+            f.write(content.replace('off', 'on', 1))
+        Oto_mute = "on"
+
+        print("Oto_mute has eveluated to on ")
+        await ctx.send("Oto mute is active")
 
 
 @client.command(description="To use !dc stop_otomute")
@@ -530,9 +614,18 @@ async def restart_automute(ctx):
 async def stop_automute(ctx):
     """Stops the automute"""
     global Oto_mute
-    Oto_mute = 0
-    print("Oto_mute has eveluated to 0")
-    await ctx.send("Oto mute is disable")
+    if Oto_mute == "off":
+        await ctx.send("Oto mute is stopped already.")
+    else:
+
+        with open("Roless.txt", "r+", encoding="utf-8") as f:
+            content = f.read()
+            f.seek(0)
+            f.truncate()
+            f.write(content.replace("on", "off", 1))
+        Oto_mute = "off"
+        print("Oto_mute has eveluated to 0")
+        await ctx.send("Oto mute is disable")
 
 
 @client.command(aliases=["clear_messages"], description="To use !dc clear msg_number")
@@ -542,8 +635,6 @@ async def clear(ctx, amount: int = 0):  # Bu method ile birlikte de bir kanaldak
     await ctx.channel.purge(limit=amount)
     await ctx.channel.send(f"{amount} messages has been deleted from the channel.")
 
-
-# Command raised an exception: TypeError: '>' not supported between instances of 'str' and 'int'
 
 @clear.error
 async def clear_error(ctx, error):
@@ -632,7 +723,16 @@ async def unban(ctx, member: discord.Member, *, reason):
 async def change_numswearwords(ctx, number):
     """"Changes allowed times to swearwords before member gets muted"""""
     global num_swearwords
-    num_swearwords = number
+    if number == num_swearwords:
+        await ctx.send(f"Allowed swear word times is {number} already.")
+    else:
+        with open("Roless.txt", "r+", encoding="utf-8") as f:
+            content = f.read()
+            f.seek(0)
+            f.truncate()
+            f.write(content.replace(str(num_swearwords), str(number), 1))  # replace methodu sadece string argüman alır.
+        num_swearwords = number
+        await ctx.send(f"Allowed swearword time evaluated to {number}.")
 
 
 # Aşağıdaki kodlar coglar ve sınıflama ile alakalıdır.Amacımız bir python dosyası yüklemek.
