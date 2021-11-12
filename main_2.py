@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import *
+import youtube_dl
 import os
 import asyncio
 import aiohttp
@@ -24,9 +25,11 @@ with open("Roless.txt", "r", encoding="utf-8") as file2:
     other_roles = liste[3].split(",")  # 3.
     mod_roles = liste[4].split(",")  # 4.
     owner_roles = liste[5].split(",")  # 5.
-    reaction_number = int(liste[6])  # 6.
 
 ext_file_types = ["jpeg", "jpg", "png", "gif"]
+swearword_count = dict()
+hata_ayiklama = dict()
+swear_time = dict()
 
 
 @client.event
@@ -35,11 +38,16 @@ async def on_ready():
     await client.change_presence(activity=discord.Game(name="with the code"))
 
 
+reaction_number1 = 0
+
+
 @client.event
 async def on_message(message):
+    global reaction_number1
     if len(message.attachments) > 0 and message.channel.name.startswith("questions"):
         for ext in ext_file_types:
             if message.attachments[0].filename.endswith(ext):
+                reaction_number1 = 0
                 await message.add_reaction("🅰")
                 await message.add_reaction("🅱")
                 await message.add_reaction("🇨")
@@ -97,7 +105,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         messagee = await channell.fetch_message(payload.message_id)  # messagee'in türü Message isimli sınıfa obje.
         for reaction in messagee.reactions:  # checks the reactant isn't a bot and the emoji isn't the one they just reacted with
 
-            if reaction_number >= 5 and not payload.member.bot and str(reaction) != str(payload.emoji):
+            if reaction_number1 >= 5 and not payload.member.bot and str(reaction) != str(payload.emoji):
                 # removes the reaction
                 await messagee.remove_reaction(reaction.emoji, payload.member)
 
@@ -204,7 +212,7 @@ allowed_animal = ["dog", "cat", "panda", "fox", "red panda", "koala", "bird", "r
 
 
 @client.command()
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def giveaway(ctx):
     while True:
         a = random.choice(ctx.guild.members)  # Bu arada bot.guilds ifadesi de bir liste döndürüyor
@@ -265,6 +273,83 @@ async def meme(ctx):
     embed.set_image(url=rjson['image'])
 
     await ctx.send(embed=embed)
+
+
+############## Music ##################
+
+
+@client.command()
+async def play(ctx, url: str):
+    global playing_status
+    if ctx.author.voice is None:
+        await ctx.send("You are not in a voice channel!")
+
+    # song_there adlı bir dosya oluşturmalıyız.
+    else:
+        song_there = os.path.isfile("song.mp3")
+        try:
+            if song_there:
+                os.remove("song.mp3")
+
+
+        except PermissionError:
+            await ctx.send("Wait for the current music to stop or use !dc stop to stop music")
+
+        voiceChannel = ctx.message.author.voice.channel
+        await voiceChannel.connect()
+        voice = discord.utils.get(client.voice_clients,
+                                  guild=ctx.guild)  # Bu bizim botun ses özellikleriyle bağlantımız olacak
+
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        for file in os.listdir("./"):
+            if file.endswith(".mp3"):
+                os.rename(file, "song.mp3")
+        voice.play(discord.FFmpegPCMAudio("song.mp3"))
+
+
+@client.command()
+async def leave(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_connected():
+        await voice.disconnect()
+    else:
+        await ctx.send("The bot is not connected to a server.")
+
+
+@client.command()
+async def pause(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_playing():
+        voice.pause()
+        await ctx.send("Paused ⏸️")
+    else:
+        await ctx.send("There is no audio playing currently.")
+
+
+@client.command()
+async def resume(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_paused():
+        voice.resume()
+        await ctx.send("Resuming ▶️")
+    else:
+        await ctx.send("The audio is already paused")
+
+
+@client.command()
+async def stop(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    voice.stop()
+    await ctx.send("The audio is stopped!")
 
 
 ############  Games  ################
@@ -472,7 +557,7 @@ Room = 0
 
 
 @client.command(aliases=["sosyal_medya"], description="To use !dc setSocialmed ")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def setSocialmed(ctx, s, abolute_path):  # Sosyal medya linklerini değiştirmemizi sağlar.
     global all_social_medias
     # s değeri hangi socila media hesabını değiştirmek istediğini belirtecek.
@@ -494,7 +579,7 @@ async def socialpush(ctx,
 
 
 @client.command()
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def stop_socialpush(ctx):
     """Stops sending links to the specified channel"""
     socialpush.stop()
@@ -513,67 +598,241 @@ def getSocials(self) -> str:
 """
 
 
+#################### Server ###############################
+@client.command(description="To use it  !dc ping ")
+async def ping(ctx):  # Defines a new "context" (ctx) command called "ping."
+    """Shows your ping in the server"""
+    await ctx.send(f"Pong! ({client.latency * 1000}ms)")
+
+
+@client.command(description="To use it !dc member_info @membername")
+async def member_info(ctx, user: discord.Member):
+    """Gives information about spesicified member"""
+    mention = []
+    for role in user.roles:
+        if role.name != "@everyone":
+            mention.append(role.mention)
+
+    bb = ", ".join(mention)
+
+    embed = discord.Embed(title="Info:", description=f"Info of: {user.mention}", color=discord.Color.orange())
+    embed.add_field(name="Top role:", value=user.top_role)
+    embed.add_field(name="Roles:", value=bb)
+    embed.add_field(name="Nick Name:", value=str(user.nick))
+    embed.add_field(name="Created at:", value=str(user.created_at.strftime("%b %d, %Y")))
+    embed.set_image(url=user.avatar_url)
+
+    await ctx.send(embed=embed)
+
+
+@client.command(description="To use it !dc server_info")
+async def server_info(ctx):
+    """Gives information about server"""
+    ctxx = ctx.guild
+    name = str(ctxx.name)
+    server_banner = str(ctxx.banner_url)  # URL
+    description = (ctxx.description)
+    owner = ctxx.owner  # Bir member ifadesinin sonuna .mention eklediğimizde @harasiva gibi ifade dönüyor.Bu ifadeye
+    # .mention gelicek.
+    region = str(ctxx.region)
+    member_count = str(ctxx.member_count)
+    icon = str(ctxx.icon_url)  # URL
+
+    embed = discord.Embed(
+        title=name + "  " + "SERVER INFO",
+        description=f"Desription: {description}",
+        colour=discord.Colour.dark_purple()
+    )
+    embed.set_thumbnail(url=icon)
+    embed.add_field(name="Created at:", value=ctx.guild.created_at.strftime("%b %d,%Y"))
+    embed.add_field(name="Owner", value=owner, inline=True)
+    embed.add_field(name="Members", value=member_count, inline=True)
+    embed.add_field(name="Premium Subscribers", value=ctxx.premium_subscribers)
+
+    await ctx.send(embed=embed)
+
+
+@client.command(description="To use it !dc banned list")
+async def banned_list(ctx):
+    """Sends the list of banned members"""
+    banned_users = await ctx.guild.bans()
+    if banned_users == []:
+        await ctx.send("There are not any banned users in the server.")
+    else:
+        for bans in banned_users:
+            kullanici1 = bans.user
+            await ctx.send(kullanici1.name, kullanici1.discriminator)
+
+    # for x in banned_users diyip x'i yazırdığımızda şu sonuç çıkıyor(servarda banlı 1 kişi var.)
+    # BanEntry(reason='Adam 31sjsj dedi abi', user=<User id=805458746394148935 name='Harasivaaa' discriminator='8603' bot=False>
+
+
 ##############  Moderation #######################
 
+###################### Problemli Kod  ######################
+# Problem: Command raised an exception: TypeError: create_role() takes 1 positional argument but 2 were given
 @client.command(description="For adding mod roles or more premium roles.!dc add_role mod role_name")
 async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args == role_name
     """Adds roles so that bot can recognize the role.It is really important for using the commands."""
-    global is_new
+    global is_new  # Bu ifadenin bu komutun sonunda falan değiştirilmesi lazım.
+    global owner_roles
+    global mod_roles
+    global other_roles
     guild = ctx.guild
+
     if is_new == "new":
 
-        typpe = ""
-        if role_type == "mod":
-            typpe = "**"
-        elif role_type == "owner":
+        typpe = "//"
+        if role_type == "mod" or role_type == "Mod":
+            typpe = "**"  # Bu şekillerle Roless.txt klasoründeki satırın bazı spesifik bölümlerini belli ediyoruz.
+        elif role_type == "owner" or role_type == "OWNER":
             typpe = "++"
-        else:                                                                                              #IN PROGRESS
-            typpe = ""
+
         with open("Roless.txt", "r+", encoding="utf-8") as file:
             content = file.read()
             file.seek(0)
-            file.truncate()  # Şu an dosya boş durumda
+
             if multiple == "m" or multiple == "M":  # For multiple roles
 
-                roles = role_name.split(",")  # ["NAME","Adam"]
+                roles = role_name.split(",")  # ["NAME","Adam"] >> Bunlar roller
                 if len(roles) <= 1:
                     await ctx.send(
-                        "On m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular) "
+                        "At m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular) "
                         "Please add ',' among every two roles you want to add.")
                 else:
-                    string = ""
-                    sayi = 0
-                    for x in roles:
-                        await guild.create_role(str(x))
-                        if not (roles[sayi + 1]):  # Bu durum son eleman için
-                            string += x
-                            file.write(content.replace("**", str(string)))
+
+                    stringg = ""
+                    sayi = 1
+                    len_list = len(roles)
+
+                    for x in roles:  # x = "Berke"
+
+                        if not discord.utils.get(guild.roles, name=str()):
+                            await guild.create_role(name=str())
+                        if sayi == len_list:  # Bu durum son eleman için
+                            stringg += x
+                            file.truncate()  # Şu an dosya boş durumda
+                            file.seek(0)
+                            file.write(content.replace(typpe, str(stringg)))  # txt dosyasına yazdırma işlemi
+                            file.seek(0)
+
+                            for c in roles:
+                                if role_type == "mod" or role_type == "Mod":
+                                    mod_roles.append(c)  # Programın içindeki değişkenleri değiştirme
+                                elif role_type == "owner" or role_type == "OWNER":
+                                    owner_roles.append(c)
+                                elif role_type == "other" or role_type == "OTHER":
+                                    other_roles.append(c)
+
+                            is_new = "no"
+                            await ctx.send("New roles has been added to bot's background")
 
                         else:
-                            string += x + ","
+                            stringg += x + ","
                             sayi += 1
 
-                    await ctx.send("New roles has been added to bot's background")
-            elif multiple == "s" or multiple == "S":  # For single role
-                new_role = await guild.create_role(str(role_name))
-                if not new_role:
-                    new_role = await guild.create_role(str(role_name))
-                    await ctx.send("New role has been added to bot's background")
-                else:
-                    await ctx.send("New role has been added to bot's background.")
-            else:
-                file.write(content)
+ #X EKSİK OLABİLİR BAZI KODLARDA ONLARA BAKMALIYIM
 
+            elif multiple == "s" or multiple == "S":
+                # For single role
+                if not discord.utils.get(guild.roles, name=str(role_name)):
+                    await guild.create_role(name=str(role_name))
+                file.truncate()
+                file.seek(0)
+                file.write(content.replace(typpe, role_name))
+                file.seek(0)
+                await ctx.send("New role has been added to bot's background.")
+                is_new = "no"
+
+            else:
+                await ctx.send(
+                    "The program couldn't understand if you want to add s(for singular role) or m(for multiple roles)."
+                    "Example usage: !dc owner m role1,role2,role3")
+                file.write(content)
 
     elif is_new == "no":
 
-        pass
+        with open("Roless.txt", "r+", encoding="utf-8") as file:
+            content = file.read()
+            file.seek(0)
+            lines = content.split(";") #Not defterindeki tek stringi ;'e göre eleman eleman içeren ifade.
+            sozluk = {"mod": "!", "MOD": "!", "owner": "|","OWNER":"|","other":"&","OTHER":"&"}  #Ana sözlüğümüz.
+            bas_karakter = sozluk.get(role_type)
+            if role_type in sozluk.keys():
+
+
+                if multiple == "s" or multiple == "S":
+
+
+                    for x in lines:
+                          # Eğer bas_karakter sozlukte varsa ona karsılık gelen ifadeyi dondurecek
+
+                        if bas_karakter:
+                           if x.startswith(bas_karakter) :
+                               if not discord.utils.get(guild.roles,name= role_name):
+                                   await guild.create_role(name= role_name)
+                               file.truncate()
+                               file.seek(0)
+                               file.write(content.replace(x,x + "," + role_name))
+                               file.seek(0)
+                               await ctx.send("New role has been added to bot's background.")
+
+                elif multiple == "m" or multiple == "M":
+                    roles = role_name.split(",")  # ["NAME","Adam"] >> Bunlar roller
+                    if len(roles) <= 1:
+                        await ctx.send(
+                            "On m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular) "
+                            "Please add ',' among every two roles you want to add.")
+                    else:
+                        for c in lines:
+                            if bas_karakter:
+                                if c.startswith(bas_karakter):
+
+
+                                    stringg = ""
+                                    sayi2 = 1
+                                    len_list = len(roles)
+
+
+                                    for z in roles:
+                                        if not discord.utils.get(guild.roles, name=str(c)):
+                                            await guild.create_role(name=str(c))
+                                        if sayi2 == len_list:  # Bu durum son eleman için
+                                            stringg += z
+                                            file.truncate()
+                                            file.seek(0)
+
+                                            file.write(content.replace(c,c + "," + stringg))
+                                            file.seek(0)
+                                            await ctx.send("New role has been added to bot's background.")
+                                        # todo buradan devam
+
+                                        else:
+                                            stringg += z + ","
+                                            sayi2 += 1
+
+                                        if role_type == "mod" or role_type == "Mod":
+                                            mod_roles.append(c)  # Programın içindeki değişkenleri değiştirme
+                                        elif role_type == "owner" or role_type == "OWNER":
+                                            owner_roles.append(c)
+                                        elif role_type == "other" or role_type == "OTHER":
+                                            other_roles.append(c)
+
+                else:
+
+                    await ctx.send(
+                        "The program couldn't understand if you want to add s(for singular role) or m(for multiple roles)."
+                        "Example usage: !dc owner m role1,role2,role3")
+
+            else:
+                await ctx.send("Correct usage is:"
+                               "!dc add_roles mod(You can change it with owner or other) s(For singular role) role_name")
+
     else:
         await ctx.send("Something went wrong!")
 
 
-
-
+#########  Problemli Kod ######################
 @add_roles.error
 async def add_role_error(ctx, error):
     if isinstance(error, MissingRequiredArgument):
@@ -587,10 +846,11 @@ async def add_role_error(ctx, error):
 
 @client.command()
 async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):
-    guild = ctx.guild
+    pass
 
 
 @client.command(description="To use it !dc restart_otomute")
+@has_any_role("admin", "Mod")
 async def restart_automute(ctx):
     """Restarts the otomute"""
     global Oto_mute
@@ -603,6 +863,7 @@ async def restart_automute(ctx):
             f.seek(0)  # Burası değişkenleri değiştrmek için kullandığımız yer.
             f.truncate()
             f.write(content.replace('off', 'on', 1))
+
         Oto_mute = "on"
 
         print("Oto_mute has eveluated to on ")
@@ -610,7 +871,7 @@ async def restart_automute(ctx):
 
 
 @client.command(description="To use !dc stop_otomute")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def stop_automute(ctx):
     """Stops the automute"""
     global Oto_mute
@@ -629,7 +890,7 @@ async def stop_automute(ctx):
 
 
 @client.command(aliases=["clear_messages"], description="To use !dc clear msg_number")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def clear(ctx, amount: int = 0):  # Bu method ile birlikte de bir kanaldaki mesajları silebileceğiz.
     """Clears messages as many as you describe"""
     await ctx.channel.purge(limit=amount)
@@ -644,7 +905,7 @@ async def clear_error(ctx, error):
 
 
 @client.command(aliases=["reproduce the channel"], description="To use !dc copy_channel chnl_number")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def copy_channel(ctx, amount=1):
     """Copies channels as many as you describe"""
     for x in range(amount):
@@ -653,7 +914,7 @@ async def copy_channel(ctx, amount=1):
 
 @client.command(description="To use !dc send_timed_msg interval_number count_number your_text channel_id"
                             "Example: !dc send_timed_msg 2 4 Hello mate how are you #general")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def send_timed_msg(ctx, *args, channnel: discord.TextChannel):
     """Sends the message and repeat it according to your indicating"""
     interval = int(args[0])
@@ -682,7 +943,7 @@ async def send_timed_msg_error(ctx):
 
 
 @client.command(aliases=["kick_member"], description="To use !dc kick @membername")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def kick(ctx, member: discord.Member, *, reason=None):
     """Kicks specified member"""
     await member.kick(reason=reason)
@@ -690,7 +951,7 @@ async def kick(ctx, member: discord.Member, *, reason=None):
 
 
 @client.command(aliases=["ban_member"], description="To use !dc ban @membername")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def ban(ctx, member: discord.Member, *, reason=None):
     """Bans the specified member"""
     dm_channel = await member.create_dm()
@@ -701,7 +962,7 @@ async def ban(ctx, member: discord.Member, *, reason=None):
 
 
 @client.command(aliases=["unban_member"], description="To use it  !dc unban @member reason(optional) ")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def unban(ctx, member: discord.Member, *, reason):
     """Unbans the member"""
     # Burada *(asterisk) kullanmamızın sebebi *'dan sonraki her argümanın member objesine
@@ -719,7 +980,7 @@ async def unban(ctx, member: discord.Member, *, reason):
 
 
 @client.command(description="To use it !dc change_numswearwords")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def change_numswearwords(ctx, number):
     """"Changes allowed times to swearwords before member gets muted"""""
     global num_swearwords
@@ -737,7 +998,7 @@ async def change_numswearwords(ctx, number):
 
 # Aşağıdaki kodlar coglar ve sınıflama ile alakalıdır.Amacımız bir python dosyası yüklemek.
 @client.command(description="To use it !dc mute @membername time(optional) reason(optional)")
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 @has_permissions(manage_messages=True)
 async def mute(ctx, member: discord.Member, time=None, *, reason=None):
     """Mutes the specified user."""
@@ -790,7 +1051,7 @@ async def mute(ctx, member: discord.Member, time=None, *, reason=None):
 
 @client.command(description="To use !dc unmute @membername")
 @has_permissions(manage_messages=True)
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def unmute(ctx, member: discord.Member):
     "Unmutes a specified user."
     mutedRole = discord.utils.get(ctx.guild.roles, name="Muted")
@@ -804,7 +1065,7 @@ async def unmute(ctx, member: discord.Member):
 
 @client.command(description="To use !dc add_reaction emoji(such as 😏) ")
 @has_permissions(manage_messages=True)
-@has_any_role(*mod_roles, *owner_roles)
+@has_any_role("admin", "Mod")
 async def add_reaction(ctx, emoji=0):
     """Adds reaction to the message that you've sent"""
     await ctx.message.add_reaction(emoji=emoji)
@@ -877,3 +1138,6 @@ async def mute_person(ctx, member: discord.Member, time=None, reason=None):
 
 
 client.run('ODkzMTc3Mjg0MDQxNzg1MzQ0.YVXqKg.Y46_I2vQO7RfH_mJkEEBTbjpb_s')
+
+
+   
