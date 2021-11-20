@@ -153,19 +153,6 @@ async def on_member_remove(member):
     swearword_count.pop(str(member.id))
     swear_time.pop(str(member.id))
 
-
-def to_upper(
-        argument):  # Converterlarda böyle bi yapı da vardır.Convertarlara çağırılabilen her şeyi koyabiliriz.Örnek:
-    # content: to_upper isimli convertırda ki to_upper kısmı.Bu kısım bir fonksiyon ve fonksiyonlar
-    # çağırılabilir şeylerdir.
-    return argument.upper()
-
-
-@client.command()
-async def up(ctx, *, content: to_upper):
-    await ctx.send(content)
-
-
 #################  Help    #########################
 @client.command()
 async def commands():  # Bu Botta olan özellikleri gösteren komut olacak
@@ -989,11 +976,9 @@ async def remove_roles(ctx, islem: str, multiple: str, *, role_name):  #Bu metho
                                             owner_roles.remove(role_name)
                                         elif islem == "other" or islem == "OTHER":
                                             other_roles.remove(role_name)
-                                        await ctx.send("New role has been added to bot's background.")
+                                        await ctx.send("New role has been removed from bot's background.")
 
-                                        print(mod_roles)
-                                        print(other_roles)
-                                        print(owner_roles)
+
 
 
                 elif multiple == "m" or multiple == "M":
@@ -1033,10 +1018,8 @@ async def remove_roles(ctx, islem: str, multiple: str, *, role_name):  #Bu metho
                                                             owner_roles.remove(cc)
                                                         elif islem == "other" or islem == "OTHER":
                                                             other_roles.remove(cc)
-                                                    await ctx.send("New roles have been added to bot's background.")
-                                                    print(mod_roles)
-                                                    print(other_roles)
-                                                    print(owner_roles)
+                                                    await ctx.send("New roles have been removed from bot's background.")
+
                                                 else:
                                                     await ctx.send("Something went wrong!")
 
@@ -1062,47 +1045,89 @@ async def remove_role_error(ctx,error):
         await ctx.send("Please be sure that your command is similar to:\n"
                        "!dc remove_roles mod m Role1,Role2,Role3")
 @client.command()
-async def forbiddenwords(ctx,tercih,multiple,*,swearwordsss):
-    if tercih != "remove" or tercih != "add":
+async def forbiddenwords(ctx):
+    for x in badwords:
+        await ctx.send(f"-{x}")
+    return
+@client.command()
+async def set_forbiddenwords(ctx,tercih,multiple,*,swearwordsss):
+    if not (tercih != "remove" or tercih != "add"):
         await ctx.send("You can remove or add swearwords to the backgorund.\n"
                        "Example Usage >>> !dc forbiddenwords remove m Word1,Word2,Word3,Word4")
 
-    with open("Badwords.txt","r+",encoding= "utf-8") as file3:
-        content = file3.read()
-        file3.seek(0)
-        swear_words = content.split(",")
-        if multiple == "s" or multiple == "S":
-            swearwords = swearwordsss.split(",")
-            if len(swearwords) > 1:
-                await ctx.send("At 's' situation you can only add or remove 1 swearword\n"  #Kod buraya giriyor
-                        "Example Usage: !dc forbiddenwords add s Word1 ")
-            else:
+    else:
 
-                if tercih == "remove":
-                    file3.truncate()
-                    file3.seek(0)
-                    file3.write(content.replace("," + swearwordsss,""))
-                    badwords.remove(swearwordsss)
-                    await ctx.send("Swear word has been successfully.")
+        with open("Badwords.txt","r+",encoding= "utf-8") as file3:
+            content = file3.read()
+            file3.seek(0)
+            swear_words = content.split(",")
+            swearwords_input = swearwordsss.split(",")
+            if multiple == "s" or multiple == "S":
 
-                elif tercih == "add":
-                    file3.truncate()
-                    file3.seek(0)
-                    file3.write(content.replace(content, content + "," + swearwordsss))
-                    badwords.append(swearwordsss)
-                    await ctx.send("Swear word has been successfully.")
-
-
+                if len(swearwords_input) > 1:
+                    await ctx.send("At 's' mode you can only add or remove 1 swearword\n"  #Kod buraya giriyor
+                            "Example Usage: !dc forbiddenwords add s Word1 ")
                 else:
-                    await ctx.send("Something went wrong.")
-        elif multiple == "m" or multiple == "M":
-            pass
-        else:
-            await ctx.send("The program couldn't understand what you want to do.\n"
-                           "---If you want to add or remove multiple(more than 1) then you need to use 'm'"
-                           "Example Usage >>> !dc forbiddenwords remove m Role1,Role2,Role3"
-                           "---If you want to add or remove singular (1) role then you need to use 's'"
-                           "Example Usage >>> !dc forbiddenwords remove s Role1")
+
+                    if tercih == "remove":
+                        file3.truncate()
+                        file3.seek(0)
+                        file3.write(content.replace("," + swearwordsss,""))
+                        badwords.remove(swearwordsss)
+                        await ctx.send("Forbiddenword has been removed successfully .")
+
+                    elif tercih == "add":
+                        file3.truncate()
+                        file3.seek(0)
+                        file3.write(content.replace(content, content + "," + swearwordsss))
+                        badwords.append(swearwordsss)
+                        await ctx.send("Forbidden word has been added successfully.")
+
+
+                    else:
+                        await ctx.send("Something went wrong.")
+            elif multiple == "m" or multiple == "M":
+                if len(swearwords_input) <= 1:
+                    await ctx.send("At 'm' mode you can add or remove more than 1 roles to the server\n"
+                                   "Example Usage: !dc forbiddenwords add m Word1,Word2,Word3")
+                else:
+                    if tercih == "add":
+                        stringg = ""
+                        sayi1 = len(swearwords_input)
+                        for x in swear_words:
+                            if sayi1 == len(swearwords_input):
+                                file3.truncate()
+                                file3.seek(0)
+                                file3.write(content.replace("," + stringg,""))
+                                for c in swearwords_input:
+                                    badwords.append(c)
+                                await ctx.send("Forbidden words has been added successfully.")
+                            else:
+                                stringg += str(x) + ","
+                                sayi1 += 1
+                    elif tercih == "remove":
+                        stringg = ""
+                        sayi1 = len(swearwords_input)
+                        for x in swear_words:
+                            if sayi1 == len(swearwords_input):
+                                file3.truncate()
+                                file3.seek(0)
+                                file3.write(content.replace(content, content + "," + stringg))
+                                for c in swearwords_input:
+                                    badwords.append(c)
+                                await ctx.send("Forbidden words has been added successfully.")
+                            else:
+                                stringg += str(x) + ","
+                                sayi1 += 1
+                    else:
+                        await ctx.send("You can only remove or add roles.\n"
+                                       "Please use 'add' or 'remove' keywords.")
+            else:
+                await ctx.send("The program couldn't understand what you want to do.\n"
+                               "---If you want to add or remove multiple(more than 1) then you need to use 'm'"
+                               "Example Usage >>> !dc forbiddenwords remove m Role1,Role2,Role3"
+                               "---If you want to add or remove singular (1) role then you need to use 's'"
+                               "Example Usage >>> !dc forbiddenwords remove s Role1")
 
 @client.command(description="To use it !dc restart_otomute")
 @has_any_role(*mod_roles,*owner_roles)
