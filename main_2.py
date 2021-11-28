@@ -7,7 +7,6 @@ import asyncio
 import aiohttp
 import random
 
-
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!dc ", intents=intents)
 
@@ -153,10 +152,11 @@ async def on_member_remove(member):
     swearword_count.pop(str(member.id))
     swear_time.pop(str(member.id))
 
+
 #################  Help    #########################
 @client.command()
 async def commands():  # Bu Botta olan özellikleri gösteren komut olacak
-    pass
+    await ctx.send("Commands of the bot.🤖")
 
 
 ################   BOT   ##############
@@ -245,9 +245,12 @@ async def animal_fact(ctx, animal: str):
         embed.set_footer(text=factjson['fact'])
         await ctx.send(embed=embed)
 
+
 meme_set = set()
+
+
 @client.command()
-async def meme(ctx): #print(rjson["id"]) yazınca bir sonuc cıkıyor
+async def meme(ctx):  # print(rjson["id"]) yazınca bir sonuc cıkıyor
 
     global meme_set
     """Sends random meme to the channel"""
@@ -255,7 +258,6 @@ async def meme(ctx): #print(rjson["id"]) yazınca bir sonuc cıkıyor
         async with aiohttp.ClientSession() as r:
             request = await r.get("https://some-random-api.ml/meme")  # Bu API mantığına bakmam gerek.
             rjson = await request.json()
-
 
         if (rjson)["id"] in meme_set:
             if len(meme_set) == 12:
@@ -350,6 +352,7 @@ async def stop(ctx):
     voice.stop()
     await ctx.send("The audio is stopped!")
 
+
 """
 @client.command(
     aliases=['l', 'lyrc', 'lyric'])  # adding aliases to the command so they they can be triggered with other names
@@ -394,6 +397,8 @@ async def lyrics(ctx, *, search=None):
         embed.set_thumbnail(url=songThumbnail)
         await ctx.send(embed=embed)
 """
+
+
 ############  Games  ################
 
 def dicee():
@@ -724,14 +729,12 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
     """new;on;3;&//;!**;|++(Roless.txt'deki ana yapı.)"""
     if is_new == "new":
 
-        sozluk0 = {"mod": "!**", "MOD": "!**", "owner": "|++", "OWNER": "|++", "other": "&//","OTHER": "&//"}
+        sozluk0 = {"mod": "!**", "MOD": "!**", "owner": "|++", "OWNER": "|++", "other": "&//", "OTHER": "&//"}
         belirleyici = sozluk0.get(role_type)
         if not (belirleyici):
             await ctx.send("There are 3 types of roles.mod,owner or other roles.\nPlease use one of them. ")
         else:
             typee = belirleyici
-
-
 
             with open("Roless.txt", "r+", encoding="utf-8") as file:
                 content = file.read()
@@ -739,7 +742,7 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
                 roles = role_name.split(",")
                 if multiple == "m" or multiple == "M":  # For multiple roles
 
-                      # ["NAME","Adam"] >> Bunlar roller
+                    # ["NAME","Adam"] >> Bunlar roller
                     if len(roles) <= 1:
                         await ctx.send(
                             "At m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular)\n "
@@ -758,8 +761,9 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
                                 stringg += x
                                 file.truncate()  # Şu an dosya boş durumda
                                 file.seek(0)
-                                content = content.replace("new","no")
-                                file.write(content.replace(belirleyici,belirleyici + "," + str(stringg)))  # txt dosyasına yazdırma işlemi
+                                content = content.replace("new", "no")
+                                file.write(content.replace(belirleyici, belirleyici + "," + str(
+                                    stringg)))  # txt dosyasına yazdırma işlemi
                                 file.seek(0)
 
                                 for c in roles:
@@ -780,11 +784,11 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
                                 stringg += x + ","
                                 sayi += 1
 
- #X EKSİK OLABİLİR BAZI KODLARDA ONLARA BAKMALIYIM
+                # X EKSİK OLABİLİR BAZI KODLARDA ONLARA BAKMALIYIM
 
                 elif multiple == "s" or multiple == "S":
                     # For single role
-                    if not (len(roles) <= 1) :
+                    if not (len(roles) <= 1):
                         await ctx.send("If you want to add multiple roles use 'm'.\n"
                                        "Example Usage: !dc add_roles owner m Role1,Role2,Role3")
                     else:
@@ -794,7 +798,7 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
                         file.truncate()
                         file.seek(0)
                         content = content.replace("new", "no")
-                        file.write(content.replace(belirleyici,belirleyici + "," + role_name))
+                        file.write(content.replace(belirleyici, belirleyici + "," + role_name))
                         file.seek(0)
                         if role_type == "mod" or role_type == "Mod":
                             mod_roles.append(role_name)  # Programın içindeki değişkenleri değiştirme
@@ -820,46 +824,44 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
         with open("Roless.txt", "r+", encoding="utf-8") as file:
             content = file.read()
             file.seek(0)
-            lines = content.split(";") #Not defterindeki tek stringi ;'e göre eleman eleman içeren ifade.
-            sozluk = {"mod": "!", "MOD": "!", "owner": "|","OWNER":"|","other":"&","OTHER":"&"}  #Ana sözlüğümüz.
+            lines = content.split(";")  # Not defterindeki tek stringi ;'e göre eleman eleman içeren ifade.
+            sozluk = {"mod": "!", "MOD": "!", "owner": "|", "OWNER": "|", "other": "&", "OTHER": "&"}  # Ana sözlüğümüz.
             bas_karakter = sozluk.get(role_type)
             if role_type in sozluk.keys():
                 roles = role_name.split(",")
 
-
                 if multiple == "s" or multiple == "S":
                     if not len(roles) == 1:
-                        await ctx.send("If you want to add multiple roles use 'm'.\n"  #Kod buraya giriyor
-                        "Example Usage: !dc add_roles owner m Role1,Role2,Role3")
+                        await ctx.send("If you want to add multiple roles use 'm'.\n"  # Kod buraya giriyor
+                                       "Example Usage: !dc add_roles owner m Role1,Role2,Role3")
                     else:
 
-
                         for x in lines:
-                              # Eğer bas_karakter sozlukte varsa ona karsılık gelen ifadeyi dondurecek
+                            # Eğer bas_karakter sozlukte varsa ona karsılık gelen ifadeyi dondurecek
 
                             if bas_karakter:
-                               if x.startswith(bas_karakter) :
-                                   if not discord.utils.get(guild.roles,name= role_name):
-                                       await guild.create_role(name= role_name)
-                                   file.truncate()
-                                   file.seek(0)
-                                   file.write(content.replace(x,x + "," + role_name))
-                                   file.seek(0)
-                                   if role_type == "mod" or role_type == "Mod":
-                                       mod_roles.append(role_name)  # Programın içindeki değişkenleri değiştirme
-                                   elif role_type == "owner" or role_type == "OWNER":
-                                       owner_roles.append(role_name)
-                                   elif role_type == "other" or role_type == "OTHER":
-                                       other_roles.append(role_name)
-                                   await ctx.send("New role has been added to bot's background.")
+                                if x.startswith(bas_karakter):
+                                    if not discord.utils.get(guild.roles, name=role_name):
+                                        await guild.create_role(name=role_name)
+                                    file.truncate()
+                                    file.seek(0)
+                                    file.write(content.replace(x, x + "," + role_name))
+                                    file.seek(0)
+                                    if role_type == "mod" or role_type == "Mod":
+                                        mod_roles.append(role_name)  # Programın içindeki değişkenleri değiştirme
+                                    elif role_type == "owner" or role_type == "OWNER":
+                                        owner_roles.append(role_name)
+                                    elif role_type == "other" or role_type == "OTHER":
+                                        other_roles.append(role_name)
+                                    await ctx.send("New role has been added to bot's background.")
 
-                                   print(mod_roles)
-                                   print(other_roles)
-                                   print(owner_roles)
+                                    print(mod_roles)
+                                    print(other_roles)
+                                    print(owner_roles)
 
 
                 elif multiple == "m" or multiple == "M":
-                      # ["NAME","Adam"] >> Bunlar roller
+                    # ["NAME","Adam"] >> Bunlar roller
                     if len(roles) <= 1:
                         await ctx.send(
                             "On m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular)\n "
@@ -869,11 +871,9 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
                             if bas_karakter:
                                 if c.startswith(bas_karakter):
 
-
                                     stringg = ""
                                     sayi2 = 1
                                     len_list = len(roles)
-
 
                                     for z in roles:
                                         if not discord.utils.get(guild.roles, name=str(z)):
@@ -882,7 +882,7 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
                                             stringg += z
                                             file.truncate()
                                             file.seek(0)
-                                            file.write(content.replace(c,c + "," + stringg))
+                                            file.write(content.replace(c, c + "," + stringg))
                                             file.seek(0)
                                             for cc in roles:
                                                 if role_type == "mod" or role_type == "Mod":
@@ -916,7 +916,6 @@ async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args =
         await ctx.send("Something went wrong!")
 
 
-
 @add_roles.error
 async def add_role_error(ctx, error):
     if isinstance(error, MissingRequiredArgument):
@@ -928,8 +927,14 @@ async def add_role_error(ctx, error):
             "Input must be like that >> !dc add_role mod m role1,role2,role3\n"
             "!Or >> dc add_role mod s role1")
 
+
+content_C = ""
+
+
 @client.command()
-async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):  #Bu methodta rol hem not defterinden hem de serverdan silinir.
+async def remove_roles(ctx, role_type: str, multiple: str, *,
+                       role_name):  # Bu methodta rol hem not defterinden hem de serverdan silinir.
+    global content_C
     global is_new  # Bu ifadenin bu komutun sonunda falan değiştirilmesi lazım.
     global owner_roles
     global mod_roles
@@ -944,8 +949,10 @@ async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):  #Bu m
             content = file.read()
             file.seek(0)
             lines = content.split(";")  # Not defterindeki tek stringi ;'e göre eleman eleman içeren ifade.
-            sozluk = {"mod": "!**", "MOD": "!**", "owner": "|++", "OWNER": "|++", "other": "&//", "OTHER": "&//"}  # Ana sözlüğümüz.
+            sozluk = {"mod": "!**", "MOD": "!**", "owner": "|++", "OWNER": "|++", "other": "&//",
+                      "OTHER": "&//"}  # Ana sözlüğümüz.
             bas_karakter = sozluk.get(role_type)
+
             if role_type in sozluk.keys():
                 roles = role_name.split(",")
 
@@ -968,7 +975,7 @@ async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):  #Bu m
 
                                         file.truncate()
                                         file.seek(0)
-                                        file.write(content.replace(x,x.replace(f",{role_name}","")))
+                                        file.write(content.replace(x, x.replace(f",{role_name}", "")))
                                         file.seek(0)
                                         if role_type == "mod" or role_type == "Mod":
                                             mod_roles.remove(role_name)  # Programın içindeki değişkenleri değiştirme
@@ -991,58 +998,82 @@ async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):  #Bu m
                             "On m(multiple) situation you must enter at least two roles.If you want to add only one role,you should use 's'(singular)\n "
                             "Please add ',' among every two roles you want to add.")
                     else:
-                        kosul = False #Bu işlemler sırasının bitip bitmedğini kontrol edicek.
-                        kosul_2 = False
+                        try:
 
-                        for c in lines:
-                            if c.startswith(sozluk.get(role_type)):
+                            kosul_iter = True  # Roles'a yapılan iterasyon işleminin bitip bitemdğini kontrol eder.
+                            kosul_ic = False
+                            kosul_dis = False
 
-                                for c_2 in c:
+                            for c in lines:
+                                if c.startswith(sozluk.get(role_type)):
+                                    content_C = str(c)
 
-                                    if c_2 == bas_karakter:
-                                        content_c = c #String türünde bir ifade
-                                        continue
-                                    for z in roles:
-                                        if not ((z in other_roles) or (z in mod_roles) or (z in owner_roles)):
-                                            await ctx.send("Please be sure that all the roles you want to remove exist in the server.")
-                                            kosul = True
-                                            break
-                                        print("SJSJSJ")
-                                        if z == c_2:
-                                        # todo burayı düzenle ve sqlite öğren
-                                            content_c.replace("," + str(z),"")
+                                    for c_2 in c:
+                                        if kosul_iter:
+                                            for z in roles:
+                                                if not (discord.utils.get(guild.roles,name= z)):
+                                                    await ctx.send(f"The role {z} cannot found in the server.\n"
+                                                                   "Please check whether it exist in the server or not.\n ")
 
-                                            if role_type == "mod" or role_type == "Mod":
-                                                mod_roles.remove(
-                                                    z)  # Programın içindeki değişkenleri değiştirme
-                                            elif role_type == "owner" or role_type == "OWNER":
-                                                owner_roles.remove(z)
-                                            elif role_type == "other" or role_type == "OTHER":
-                                                other_roles.remove(z)
-                                            role_object = discord.utils.get(ctx.guild.roles, name=str(z))
-                                            await role_object.delete()
+                                                    kosul_ic = True
+
+                                                elif not (
+                                                        mod_roles.count(z) or other_roles.count(z) or owner_roles.count(
+                                                        z)):
+                                                    await ctx.send(
+                                                        "Please be sure that all the roles you want to remove exist in the server.")
+                                                    kosul_ic = True
+                                                    break
+
+                                                else:
+
+                                                    content_C = content_C.replace("," + z, "")
+
+                                                    role_object = discord.utils.get(guild.roles, name=z)
+                                                    await role_object.delete()
+                                                    if role_type == "mod" or role_type == "Mod":
+                                                        await ctx.send(f"The role {z} has been removed from the server. ")
+                                                        mod_roles.remove(
+                                                            z)  # Programın içindeki değişkenleri değiştirme
+                                                    elif role_type == "owner" or role_type == "OWNER":
+                                                        await ctx.send(
+                                                            f"The role {z} has been removed from the server. ")
+                                                        owner_roles.remove(z)
+                                                    elif role_type == "other" or role_type == "OTHER":
+                                                        await ctx.send(
+                                                            f"The role {z} has been removed from the server. ")
+                                                        other_roles.remove(z)
+
+                                            kosul_iter = False
                                             print(mod_roles)
                                             print(other_roles)
                                             print(owner_roles)
+
+                                        if kosul_ic:
+                                            kosul_dis = True
                                             break
-                                    if kosul:
-                                        kosul_2 = True
+
+                                        if c.endswith(c_2) and kosul_iter == False:
+                                            print("Bu asamaya girildi.")
+                                            print(content_C)
+                                            file.truncate()
+                                            file.seek(0)
+                                            file.write(content.replace(c, content_C))
+                                            file.seek(0)
+                                            kosul_dis = True
+
+                                            break
+
+                                    if kosul_dis:
                                         break
 
-                                    elif c.endswith(c_2):
-                                        file.truncate()
-                                        file.seek(0)
-                                        file.write(content.replace(c,content_c))
-                                        file.seek(0)
-                                        kosul_2 = True
-                                        break
-                            else:
-                                await ctx.send("Something went wrong.Please be sure that you used valid command.")
-
-                            if kosul_2:
-                                break
-
-
+                        except:
+                            await ctx.send("Something went wrong please check your code.\n"
+                                           "-Check whether the roles you want to remove exist or not.\n"
+                                           "-Check whether you used modes(m or s) or not\n"
+                                           "-Check whether you defined the role type(mod or owner or other) or not\n"
+                                           "-Check whether you used command right.\n"
+                                           "-Check whether you wrote wrong or invalid role names or not.")
 
 
 
@@ -1055,25 +1086,31 @@ async def remove_roles(ctx, role_type: str, multiple: str, *, role_name):  #Bu m
             else:
                 await ctx.send("Correct usage is:"
                                "!dc add_roles mod(You can change it with owner or other) s(For singular role) role_name")
+
+
 @remove_roles.error
-async def remove_role_error(ctx,error):
-    if isinstance(error,AttributeError):
+async def remove_role_error(ctx, error):
+    if isinstance(error, AttributeError):
         await ctx.send("Please be sure that your command is similar to:\n"
                        "!dc remove_roles mod m Role1,Role2,Role3")
+
+
 @client.command()
 async def forbiddenwords(ctx):
     for x in badwords:
         await ctx.send(f"-{x}")
     return
+
+
 @client.command()
-async def set_forbiddenwords(ctx,tercih,multiple,*,swearwordsss):
+async def set_forbiddenwords(ctx, tercih, multiple, *, swearwordsss):
     if not (tercih != "remove" or tercih != "add"):
         await ctx.send("You can remove or add swearwords to the backgorund.\n"
                        "Example Usage >>> !dc forbiddenwords remove m Word1,Word2,Word3,Word4")
 
     else:
 
-        with open("Badwords.txt","r+",encoding= "utf-8") as file3:
+        with open("Badwords.txt", "r+", encoding="utf-8") as file3:
             content = file3.read()
             file3.seek(0)
             swear_words = content.split(",")
@@ -1081,14 +1118,14 @@ async def set_forbiddenwords(ctx,tercih,multiple,*,swearwordsss):
             if multiple == "s" or multiple == "S":
 
                 if len(swearwords_input) > 1:
-                    await ctx.send("At 's' mode you can only add or remove 1 swearword\n"  #Kod buraya giriyor
-                            "Example Usage: !dc forbiddenwords add s Word1 ")
+                    await ctx.send("At 's' mode you can only add or remove 1 swearword\n"  # Kod buraya giriyor
+                                   "Example Usage: !dc forbiddenwords add s Word1 ")
                 else:
 
                     if tercih == "remove":
                         file3.truncate()
                         file3.seek(0)
-                        file3.write(content.replace("," + swearwordsss,""))
+                        file3.write(content.replace("," + swearwordsss, ""))
                         badwords.remove(swearwordsss)
                         await ctx.send("Forbiddenword has been removed successfully .")
 
@@ -1114,7 +1151,7 @@ async def set_forbiddenwords(ctx,tercih,multiple,*,swearwordsss):
                             if sayi1 == len(swearwords_input):
                                 file3.truncate()
                                 file3.seek(0)
-                                file3.write(content.replace("," + stringg,""))
+                                file3.write(content.replace("," + stringg, ""))
                                 for c in swearwords_input:
                                     badwords.append(c)
                                 await ctx.send("Forbidden words has been added successfully.")
@@ -1145,8 +1182,9 @@ async def set_forbiddenwords(ctx,tercih,multiple,*,swearwordsss):
                                "---If you want to add or remove singular (1) role then you need to use 's'"
                                "Example Usage >>> !dc forbiddenwords remove s Role1")
 
+
 @client.command(description="To use it !dc restart_otomute")
-@has_any_role(*mod_roles,*owner_roles)
+@has_any_role(*mod_roles, *owner_roles)
 async def restart_automute(ctx):
     """Restarts the otomute"""
     global Oto_mute
@@ -1436,6 +1474,3 @@ async def mute_person(ctx, member: discord.Member, time=None, reason=None):
 client.run('ODkzMTc3Mjg0MDQxNzg1MzQ0.YVXqKg.Y46_I2vQO7RfH_mJkEEBTbjpb_s')
 
 # these imports are used for this particular lyrics command. the essential import here is aiohttp, which will be used to fetch the lyrics from the API
-
-
-
