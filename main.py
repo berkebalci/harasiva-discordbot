@@ -45,11 +45,6 @@ async def on_ready():
 
 reaction_number1 = 0
 
-
-class Bro:
-    print("sj")
-
-
 @client.event
 async def on_message(message):
     global reaction_number1
@@ -117,8 +112,6 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
             if reaction_number1 >= 5 and not payload.member.bot and str(reaction) != str(payload.emoji):
                 # removes the reaction
                 await messagee.remove_reaction(reaction.emoji, payload.member)
-
-
 @client.event
 async def on_command_error(ctx, error):
     await ctx.send(error)
@@ -160,18 +153,6 @@ async def on_member_remove(member):
     global swear_time
     swearword_count.pop(str(member.id))
     swear_time.pop(str(member.id))
-
-
-#################  Help    ######################
-
-@client.command()
-async def test(ctx):
-    embed = discord.Embed(title="sj", description="Deneme", colour=discord.Colour.orange())
-    embed.set_thumbnail(url=client.user.avatar_url)  # thumbnail >> Küçük resim.
-    embed.set_footer(text="Bot ")
-    await ctx.send(embed=embed)
-
-
 ################   BOT   ##############
 
 @client.command(description="For that command there are a few options"
@@ -191,7 +172,7 @@ async def change_status(ctx, activity, *, text):
 
 
 ###############   Bot_Response  ##############
-@client.command(aliases=["selamla", "say_hello", "hi"], description="")
+@client.command(aliases=["selamla", "say_hello", "hi"], description="To use the command: !dc greetings")
 async def greetings(ctx, *args):  # ctx demek context yani mesajın içeriği anlamına geliyor
     """Bot greets everyone and says its name. (Bot)"""
     print(ctx)  # Bunu yazdırdığımızda <Message id=878026076855623711 channel=<TextChannel id=873962539......
@@ -203,17 +184,12 @@ async def greetings(ctx, *args):  # ctx demek context yani mesajın içeriği an
     await ctx.send(f"Hi everyone,my name is {client.user.name}.  I am a Discord Bot :) ")
 
 
-@client.command()
-async def chat(ctx):
-    pass
-
-
 ###############  Fun  ##################################
 
 allowed_animal = ["dog", "cat", "panda", "fox", "red panda", "koala", "bird", "raccoon", "kangaroo"]
 
 
-@client.command()
+@client.command(description= "To use the command: !dc giveaway")
 @has_any_role("admin", "Mod")
 async def giveaway(ctx):
     """Selects a member in the server except Bot  (Fun)"""
@@ -234,7 +210,9 @@ async def giveaway(ctx):
                             "koala\n"
                             "bird\n"
                             "raccoon\n"
-                            "kangaroo\n")
+                            "kangaroo\n"
+                            "\n"
+                            "Example: !dc animal_fact raccoon")
 async def animal_fact(ctx, animal: str):
     """Gives information about specified animal (Fun)"""
     global allowed_animal
@@ -302,7 +280,8 @@ async def meme(ctx):  # print(rjson["id"]) yazınca bir sonuc cıkıyor
 ############## Music ##################
 
 url_2 = ""
-@client.command(description="To use the command: !dc play video_url")
+@client.command(description="To use the command: !dc play video_url\n"
+                            "Example: !dc play https://www.youtube.com/watch?v=oKUuA1MnCs4")
 async def play(ctx, url: str):
     """Plays music  (Music)"""
     global url_2
@@ -354,7 +333,9 @@ async def play(ctx, url: str):
 
 
 @client.command(description= "To use the command: !dc leave\n"
-                             "You must use this command if you want to make the bot leave the channel.")
+                             "You must use this command if you want to play a song after a song\n"
+                             "To play another song>>>First make the bot leave the channel: !dc leave\n"
+                             "After that: !dc play https://www.youtube.com/watch?v=oKUuA1MnCs4")
 async def leave(ctx):
     """Bot leaves the channel(Music)"""
     voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
@@ -506,11 +487,14 @@ async def start_tictactoe(ctx, p1: discord.Member, p2: discord.Member):
             num = random.randint(1, 2)
             if num == 1:
                 turn = player1
-                await ctx.send("It is <@" + str(player1.id) + ">'s turn.")
-            else:
-
-                turn = player2
                 await ctx.send("It is <@" + str(player2.id) + ">'s turn.")
+                turn = player2
+            else:
+                turn = player2
+                await ctx.send("It is <@" + str(player1.id) + ">'s turn.")
+                turn = player1
+
+
 
 
     else:
@@ -552,10 +536,10 @@ async def place(ctx, pos: int):  # ctx.author != self.player1/2 ifadesine True d
         elif turn == ctx.author:
             if turn == player1:
                 mark = ":regional_indicator_x:"
-                await ctx.send(f"It is {player1.mention}'s turn ")
+                await ctx.send(f"It is {player2.mention}'s turn ")
             elif turn == player2:
                 mark = ":o2:"
-                await ctx.send(f"It is {player2.mention}'s turn")
+                await ctx.send(f"It is {player1.mention}'s turn")
 
             if 0 < pos < 10 and board[pos - 1] == ":white_large_square:":
                 board[pos - 1] = mark
@@ -637,10 +621,16 @@ all_social_medias = {
 Room = 0
 
 
-@client.command(aliases=["sosyal_medya"], description="To use !dc setSocialmed ")
+@client.command(aliases=["sosyal_medya"], description="!dc setSocialmed s abolute_path\n"
+                                                      "On above command 's' means which social media you want to set.\n"
+                                                      "1 for Twitter\n"
+                                                      "2 for INSTAGRAM\n"
+                                                      "3 for YOUTUBE\n"
+                                                      "4 for LINKEDIN\n"
+                                                      "Example: !dc setSocialmed 1 https://twitter.com/HaraSivaaa\n)")
 @has_any_role("admin", "Mod")
 async def setSocialmed(ctx, s, abolute_path):  # Sosyal medya linklerini değiştirmemizi sağlar.
-    """"""
+    """For setting sclmedi links to send to channels."""
     global all_social_medias
     # s değeri hangi socila media hesabını değiştirmek istediğini belirtecek.
     # abolute_path ifadesi sosyal medya linki
@@ -649,11 +639,13 @@ async def setSocialmed(ctx, s, abolute_path):  # Sosyal medya linklerini değiş
     print(all_social_medias)
 
 
-@client.command(description="To use !dc socialpush #channel_name num(interval) num(count)")
+@client.command(description="To use !dc socialpush #channel_name num(interval) num(count)\n"
+                            "Example: !dc socialpush #channel1 2 6\n"
+                            "After the above code bot sends your social medias to the specifed channel 2 seconds apart for 6 times.")
 async def socialpush(ctx,
                      room: discord.TextChannel, interval=10,
                      count=3):  # Bu sosyal medya linki gönderme olayını başlatan bu fonksiyon.
-    """Sends social media links to a channel specified times."""
+    """Sends social media links to a channel specified times(Moderation)."""
     global Room
     Room = room
     task = tasks.loop(seconds=interval, count=count)(socialmedia_push)
@@ -754,7 +746,10 @@ async def banned_list(ctx):
 
 
 @client.command(
-    description="It is so important to add roles so that the user can use the command properly.\nFor adding mod roles or more premium roles.!dc add_role mod role_name")
+    description="It is so important to add roles so that the user can use the command properly.\n"
+                "For adding mod roles or more premium roles.!dc add_role mod role_name\n"
+                "Example1: !dc add_roles owner m Role2,Role3\n"
+                "Example2: !dc add_roles mod s Role1")
 async def add_roles(ctx, role_type: str, multiple: str, *, role_name):  # args == role_name
     """Adds roles to memory.(Moderation)"""
     global is_new  # Bu ifadenin bu komutun sonunda falan değiştirilmesi lazım.
@@ -967,7 +962,10 @@ async def add_role_error(ctx, error):
 content_C = ""
 
 
-@client.command(description= "It is so important to use that command.If you don't,some issues might be occured.\nTo use the command: !dc remove_roles mod m role_name")
+@client.command(description= "It is so important to use that command.If you don't,some issues might be occured.\n"
+                             "To use the command: !dc remove_roles mod m role_name\n"
+                             "Example1: !dc remove_roles owner m Role2,Role3\n"
+                             "Example2 !dc remove_roles mod s Role1")
 async def remove_roles(ctx, role_type: str, multiple: str, *,
                        role_name):  # Bu methodta rol hem not defterinden hem de serverdan silinir.
     """Removes the given role(s) from memory(Moderation)"""
@@ -1141,12 +1139,14 @@ async def show_forbiddenwords(ctx):
     return
 
 
-@client.command(description="To use the command: !dc set_forbiddenwords add(or remove) m(multiple) word1,word2....")
+@client.command(description="To use the command: !dc set_forbiddenwords add(or remove) m(multiple) word1,word2...."
+                            "Example1: !dc set_forbiddenwords add m Word1,Word2\n"
+                             "Example2 !dc set_forbiddenwords remove s Word1")
 async def set_forbiddenwords(ctx, tercih, multiple, *, swearwordsss):
     """Removes or Adds forbiddenwords to memory(Moderation)"""
     if not (tercih != "remove" or tercih != "add"):
         await ctx.send("You can remove or add swearwords to the backgorund.\n"
-                       "Example Usage >>> !dc forbiddenwords remove m Word1,Word2,Word3,Word4")
+                       "Example Usage:!biddenwords remove m Word1,Word2,Word3,Word4")
 
     else:
 
@@ -1263,7 +1263,9 @@ async def stop_automute(ctx):
         await ctx.send("Oto mute is disable")
 
 
-@client.command(aliases=["clear_messages"], description="To use !dc clear msg_number")
+@client.command(aliases=["clear_messages"], description="To use !dc clear msg_number\n"
+                                                        "Example: !dc clear 5\n"
+                                                        "After the above command last 5 messages in the channel wiil be deleted.")
 @has_any_role("admin", "Mod")
 async def clear(ctx, amount: int = 0):  # Bu method ile birlikte de bir kanaldaki mesajları silebileceğiz.
     """Clears messages as many as you describe(Moderation)"""
@@ -1278,7 +1280,8 @@ async def clear_error(ctx, error):
         await ctx.send("Please fill the required gap in the command.")
 
 
-@client.command(aliases=["reproduce the channel"], description="To use !dc copy_channel chnl_number")
+@client.command(aliases=["reproduce the channel"], description="To use !dc copy_channel chnl_number\n"
+                                                               "Example: !dc copy_channel 5")
 @has_any_role("admin", "Mod")
 async def copy_channel(ctx, amount=1):
     """Copies channels as many as you describe(Moderation)"""
@@ -1316,7 +1319,8 @@ async def send_timed_msg_error(ctx):
                    "---text:Your message")
 
 
-@client.command(aliases=["kick_member"], description="To use !dc kick @membername")
+@client.command(aliases=["kick_member"], description="To use !dc kick @membername\n"
+                                                     "Example: !dc kick @Harasiva")
 @has_any_role("admin", "Mod")
 async def kick(ctx, member: discord.Member, *, reason=None):
     """Kicks specified member(Moderation)"""
@@ -1324,7 +1328,8 @@ async def kick(ctx, member: discord.Member, *, reason=None):
     await ctx.send(f"{member}'s been kicked from the server")
 
 
-@client.command(aliases=["ban_member"], description="To use !dc ban @membername")
+@client.command(aliases=["ban_member"], description="To use !dc ban @membername\n"
+                                                    "Example: !dc ban @Harasiva")
 @has_any_role("admin", "Mod")
 async def ban(ctx, member: discord.Member, *, reason=None):
     """Bans the specified member(Moderation)"""
@@ -1335,7 +1340,8 @@ async def ban(ctx, member: discord.Member, *, reason=None):
     await ctx.send(f"{member}'s been banned from the server.")
 
 
-@client.command(aliases=["unban_member"], description="To use it  !dc unban @member reason(optional) ")
+@client.command(aliases=["unban_member"], description="To use it  !dc unban @member reason(optional)\n"
+                                                      "Example: !dc unban @Harasiva For making discord bots ")
 @has_any_role("admin", "Mod")
 async def unban(ctx, member: discord.Member, *, reason):
     """Unbans the member(Moderation)"""
@@ -1372,7 +1378,9 @@ async def set_numswearwrds(ctx, number):
 
 
 # Aşağıdaki kodlar coglar ve sınıflama ile alakalıdır.Amacımız bir python dosyası yüklemek.
-@client.command(description="To use it !dc mute @membername time(optional) reason(optional)")
+@client.command(description="To use it !dc mute @membername time(optional) reason(optional)\n"
+                            "Example: !dc mute @Harasiva 5h for trolling\n"
+                            "Instead of hours you can use minutes(m) or seconds(s).")
 @has_any_role("admin", "Mod")
 @has_permissions(manage_messages=True)
 async def mute(ctx, member: discord.Member, time=None, *, reason=None):
@@ -1424,7 +1432,8 @@ async def mute(ctx, member: discord.Member, time=None, *, reason=None):
         await ctx.send(embed=unmute_embed)
 
 
-@client.command(description="To use !dc unmute @membername")
+@client.command(description="To use !dc unmute @membername\n"
+                            "Example: !dc unmute @Harasiva")
 @has_permissions(manage_messages=True)
 @has_any_role("admin", "Mod")
 async def unmute(ctx, member: discord.Member):
@@ -1437,21 +1446,14 @@ async def unmute(ctx, member: discord.Member):
                           colour=discord.Colour.light_gray())
     await ctx.send(embed=embed)
 
-
-@client.command(description="To use !dc add_reaction emoji(such as 😏) ")
-@has_permissions(manage_messages=True)
-@has_any_role("admin", "Mod")
-async def add_reaction(ctx, emoji=0):
-    """Adds reaction to the message that you've sent(Moderation)"""
-    await ctx.message.add_reaction(emoji=emoji)
-
-
-@client.command(description="To use it  !dc vote value1,value2,value3......")
-async def vote(self, ctx, choices: str, *emojiss: str):
+@client.command(description="To use it  !dc start_voting option1,option2,option3 emoji1 emoji2 emoji3\n"
+                            "Example: !dc start_voting Istanbul,New York 😃 😎\n"
+                            "After the above command a voting will occur and there will be 2 options.(You can increase number of options and emojis)")
+async def start_voting(ctx, choices: str, *emojiss: str):
     """Starts a voting for members(Moderation)"""
     choicess = choices.split(",")
     if len(choicess) != len(emojiss):
-        await ctx.send("The number of emojis must be same as the number of choices")
+        await ctx.send("Please make sure you put ',' between options and number of options and num of emojis are the same")
     else:
         emojis = [*emojiss]
         random_emojis = random.sample(emojis, len(choicess))
