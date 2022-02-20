@@ -1,4 +1,3 @@
-import urllib.parse
 import discord
 import urllib3.util
 from discord.ext import commands, tasks
