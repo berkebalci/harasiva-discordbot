@@ -9,11 +9,12 @@ import aiohttp
 import random
 import datetime
 import textwrap
-from urllib3 import *
+from github import Github #Bu modül PyGithub modülüdür.
+
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!dc ", intents=intents)
-
+badwords = []
 with open("Badwords.txt", "r", encoding="utf-8") as f:
     for c in f:
         badwords = c.split(",")
@@ -94,8 +95,8 @@ async def on_message(message):
                 except KeyError:
                     hata_ayiklama[str(message.author.id)] = 0
                     swearword_count[str(message.author.id)] = 1
-                    await message.author.send("Bu ifadeyi kullanmaya devam edersiniz mutelanıcaksınız.")
-                    await message.channel.send("Lütfen bu kötü ifadeyi kullanmayınız.")
+                    await message.author.send("If you continue using bad words,you will get banned from the server.")
+                    await message.channel.send("Please do not use that word ever!")
                     await message.delete()
                     break
             await client.process_commands(message)
@@ -1359,7 +1360,8 @@ async def unban(ctx, member: discord.Member, *, reason):
 
 
 @client.command(description="To use it !dc set_numswearwrds number\n"
-                            "Example: !dc set_numswearwrds 5   (If someone writes swearwords more than 5 times he/she will get banned.)")
+                            "Example: !dc set_numswearwrds 5   (If someone writes swearwords more than 5 times he/she will get banned.)\n"
+                            )
 @has_any_role("admin", "Mod")
 async def set_numswearwrds(ctx, number):
     """"Changes allowed times of each user's swearwords(Moderation)"""""
@@ -1511,6 +1513,22 @@ async def mute_person(ctx, member: discord.Member, time=None, reason=None):
         unmute_embed = discord.Embed(title="Mute over!",
                                      description=f'{ctx.author.mention} muted to {member.mention} for {reason} is over after {time}')
         await ctx.channel.send(embed=unmute_embed)
+###########PyGithun deneme yeri################
+#Token= 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
+@client.command()
+async def test2(ctx,*,msg):
+    #"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"
+    github = Github("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")
+    repository = github.get_user().get_repo("harasiva-discordbot")
+    #Path in the repository
+    filename = "deneme.txt"
+    #Reading
+    file = repository.get_contents(filename)
+    print(file.decoded_content.decode()) #Bu ifade bir stringtir.
+    string = file.decoded_content.decode()
+    await ctx.send(string)
+    #Updating
+    repository.update_file(file.path,"test",f"{string},{msg}",file.sha,branch= "main")
 
 
 client.run('ODkzMTc3Mjg0MDQxNzg1MzQ0.YVXqKg.Y46_I2vQO7RfH_mJkEEBTbjpb_s')
