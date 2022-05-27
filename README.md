@@ -1,5 +1,7 @@
 # harasiva-bot
 
+Main file is  **main.py**
+
 This bot is made by myself.I've used Python language and discord.py module to make this bot.Bot will be upgraded in the long run.
 This bot has been running on Heroku.I use this repository to get data by using Github.py module for my bot :D.
 
