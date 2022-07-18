@@ -12,10 +12,10 @@ import textwrap
 from github import Github  # Bu modül PyGithub modülüdür.
 
 intents = discord.Intents.all()
-client = commands.Bot(command_prefix="!dc ", intents=intents)
+client = commands.Bot(command_prefix="!dc ", intents=intents,help_command=None)
 
 # Github dökümanını düzenleme
-github = Github("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")  # Bu TOKEN kullanıcının TOKEN'idir.
+github = Github("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")  # Bu TOKEN kullanıcının TOKEN'idir.
 repository = github.get_user().get_repo("harasiva-discordbot")
 # Badwords için
 file = repository.get_contents("Badwords.txt")  # Şifreli hali
@@ -203,7 +203,7 @@ allowed_animal = ["dog", "cat", "panda", "fox", "red panda", "koala", "bird", "r
 
 @client.command(description="To use the command: !dc giveaway")
 @has_any_role("admin", "Mod")
-async def giveaway(ctx):
+async def draw(ctx):
     """Selects a member in the server except Bot  (Fun)"""
     while True:
         a = random.choice(ctx.guild.members)  # Bu arada bot.guilds ifadesi de bir liste döndürüyor
@@ -294,7 +294,8 @@ async def meme(ctx):  # print(rjson["id"]) yazınca bir sonuc cıkıyor
 url_2 = ""
 
 
-@client.command(description="To use the command: !dc play video_url\n"
+@client.command(description="Warning!: Url must be url of a  Youtube video"
+                            "To use the command: !dc play video_url\n"
                             "Example: !dc play https://www.youtube.com/watch?v=oKUuA1MnCs4")
 async def play(ctx, url: str):
     """Plays music  (Music)"""
@@ -455,10 +456,11 @@ winning_conditions = [
     [0, 4, 8],
     [2, 4, 6]]
 
+
 @client.command(aliases=["XOX", "noughts and crosses"])
 async def start_tictactoe(ctx, p1: discord.Member, p2: discord.Member):
     "Starts tictactoe.(Games)"
-    global main_channel #TODO tictactoenun farklı bir  kanaldan oynanmasına izin ver
+    global main_channel  # TODO tictactoenun farklı bir  kanaldan oynanmasına izin ver
     global player1
     global player2
     global board
@@ -495,8 +497,8 @@ async def start_tictactoe(ctx, p1: discord.Member, p2: discord.Member):
             # determine whoe goes first
             if kosul == False:
                 await ctx.send(
-    "To place 'X' or 'O'  >>>!dc place 5(this number can be 1 to 9)\n"
-    "Numbers start from top left of the square to right ")
+                    "To place 'X' or 'O'  >>>!dc place 5(this number can be 1 to 9)\n"
+                    "Numbers start from top left of the square to right ")
             num = random.randint(1, 2)
             if num == 1:
                 turn = player1
@@ -642,7 +644,7 @@ Room = 0
                                                       "4 for LINKEDIN\n"
                                                       "Example: !dc setSocialmed 1 https://twitter.com/HaraSivaaa\n)")
 @has_any_role("admin", "Mod")
-async def setSocialmed(ctx, s, abolute_path):  # Sosyal medya linklerini değiştirmemizi sağlar.
+async def setSocialmedia(ctx, s, abolute_path):  # Sosyal medya linklerini değiştirmemizi sağlar.
     """For setting sclmedi links to send to channels."""
     global all_social_medias
     # s değeri hangi socila media hesabını değiştirmek istediğini belirtecek.
@@ -744,12 +746,13 @@ async def server_info(ctx):
 async def banned_list(ctx):
     """Sends the list of banned members(Server)"""
     banned_users = await ctx.guild.bans()
+    bans_string = ""
     if banned_users == []:
-        await ctx.send("There are not any banned users in the server.")
+        await ctx.send("There aren't any banned users in the server.")
     else:
         for bans in banned_users:
-            kullanici1 = bans.user
-            await ctx.send(kullanici1.name, kullanici1.discriminator)
+            bans_string = bans_string+"\n"+bans.user.name+"#"+bans.user.discriminator
+        await ctx.send(bans_string)
 
     # for x in banned_users diyip x'i yazırdığımızda şu sonuç çıkıyor(servarda banlı 1 kişi var.)
     # BanEntry(reason='Adam 31sjsj dedi abi', user=<User id=805458746394148935 name='Harasivaaa' discriminator='8603' bot=False>
@@ -1264,13 +1267,13 @@ async def stop_automute(ctx):
                                                         "Example: !dc clear 5\n"
                                                         "After the above command last 5 messages in the channel wiil be deleted.")
 @has_any_role("admin", "Mod")
-async def clear(ctx, amount: int = 0):  # Bu method ile birlikte de bir kanaldaki mesajları silebileceğiz.
+async def clear_msg(ctx, amount: int = 0):  # Bu method ile birlikte de bir kanaldaki mesajları silebileceğiz.
     """Clears messages as many as you describe(Moderation)"""
     await ctx.channel.purge(limit=amount)
     await ctx.channel.send(f"{amount} messages has been deleted from the channel.")
 
 
-@clear.error
+@clear_msg.error
 async def clear_error(ctx, error):
     print(error)
     if isinstance(error, commands.MissingRequiredArgument):
@@ -1289,8 +1292,8 @@ async def copy_channel(ctx, amount=1):
 @client.command(description="To use !dc send_timed_msg interval_number count_number your_text channel_id"
                             "Example: !dc send_timed_msg 2 4 Hello mate how are you #general")
 @has_any_role("admin", "Mod")
-async def send_timed_msg(ctx, *args, channnel: discord.TextChannel):
-    """Sends the message and repeats it(Moderation)"""
+async def send_periodic_msg(ctx, *args, channnel: discord.TextChannel):
+    """Sends the message and repeats it periodically(Moderation)"""
     interval = int(args[0])
     count = int(args[1])
     text = "".join(args[2:])
@@ -1306,7 +1309,7 @@ async def send_timed_messages(ctx, text, channel):
             await x.send(text)
 
 
-@send_timed_msg.error
+@send_periodic_msg.error
 async def send_timed_msg_error(ctx):
     await ctx.send("The format of this command must be:\n"
                    "!dc send_timed_msg seconds interval text\n"
@@ -1340,7 +1343,7 @@ async def ban(ctx, member: discord.Member, *, reason=None):
 @client.command(aliases=["unban_member"], description="To use it  !dc unban member#.... reason(optional)\n"
                                                       "Example: !dc unban Harasivaaa#8603 For making discord bots ")
 @has_any_role("admin", "Mod")
-async def unban(ctx, member, *, reason):
+async def unban(ctx, member: discord.Member, *, reason):
     """Unbans the member(Moderation)"""
     # Burada *(asterisk) kullanmamızın sebebi *'dan sonraki her argümanın member objesine
     # gitmesini istememizdir.Çünkü eğer böyle yapmasak ve birinin banını kaldırmak istesek:
@@ -1351,6 +1354,7 @@ async def unban(ctx, member, *, reason):
     for x in banned_users:
         if member.id == x.id:
             await member.unban(reason=reason)
+            await ctx.send(f"{member} has been unbanned from the server.")
             return
         else:
             await ctx.send("This member is not banned")
@@ -1382,6 +1386,8 @@ async def set_numswearwrds(ctx, number):
 @has_permissions(manage_messages=True)
 async def mute(ctx, member: discord.Member, time=None, *, reason=None):
     """Mutes the specified user.(Moderation)"""
+    await ctx.send(f"{ctx.message.content},{ctx}")
+    print("Sj")
     if not member:
         await ctx.send("You must mention a member to mute!")
     elif not time:
@@ -1416,7 +1422,7 @@ async def mute(ctx, member: discord.Member, time=None, *, reason=None):
             for channel in guild.channels:
                 await channel.set_permissions(mutedRole, speak=False, send_messages=False,
                                               read_message_history=True,
-                                              read_messages=False)
+                                              read_messages=True)
         await member.add_roles(mutedRole, reason=reason)
         muted_embed = discord.Embed(title="Muted user",
                                     description=f"{member.mention} Was muted by {ctx.author.mention} for {reason} to {time}",
@@ -1511,10 +1517,64 @@ async def mute_person(ctx, member: discord.Member, time=None, reason=None):
         unmute_embed = discord.Embed(title="Mute over!",
                                      description=f'{ctx.author.mention} muted to {member.mention} for {reason} is over after {time}')
         await ctx.channel.send(embed=unmute_embed)
+#TODO Embeded help command yapılacak
+game = ["dice","start_tictactoe"]
+music = ["play","pause"]
+
+sozluk = {
+    "Bot":["change_status",],
+    "Bot_Response":["greetings"],
+    "Fun":["draw","animal_fact","meme",]
+    ,"Game":["dice","start_tictactoe","end_tictactoe","place(Tictactoe)"],
+    "Music":["play","pause","leave","resume","stop","lyrics",],
+    "Social_Media":["setSocialmedia","socialpush","stop_socialpush"],
+    "Server":["ping","member_info","server_info","banned_list"],
+    "Moderation": ["add_roles","remove_roles","show_forbiddenwords","set_forbiddenwords","restart_automute","stop_automute","clear_msg","copy_channel","send_periodic_msg"
+    ,"kick","ban","unban","set_numswearwrds","mute","unmute","start_voting",]
+    }
+event_liste = ["Badword preventing system(After some point users who use those badwords get muted)","Reacting to user's new roles","Reacting to new members",
+"Reacting to members who leave the server","Reacting to specified file types(Example: Bot can add 5 answers to images of Questions)"]
+@client.command()
+async def help(ctx,args=""):
+    if args != "":
+        dd = client.get_command(args).description
+        #d = commands.Command(args).description
+        await ctx.send(dd) #Komutun aciklamasi
+    else:
+    
+        help_embed = discord.Embed(
+        title= "Commands",
+        description="""
+        For more information about commands: !dc help command_name\n
+        Example: !dc help play
+         """)
+        
+        
+        for x in sozluk.items(): # x = (game,[1,2,3,4])
+            string=""
+            for y in x[1]:
+                if x[1][-1] == y:
+                    string += y
+                elif x[1][-1] != y:
+                    string += y + "," + "\n"
+            help_embed.add_field(name=f"{x[0]}",value=string,)            
+        help_embed2 = discord.Embed(
+        title = "Other Features",
+        )
+        await ctx.send(embed=help_embed)
+        stringg=""
+        for x in event_liste:
+            
+            if liste[-1] == x:
+                stringg+= "-" + x + "," "\n\n"
+            else:
+                stringg+= x + "\n,"
+        help_embed2.add_field(name="Features",value=stringg)
+        await ctx.send(embed=help_embed2)     
+
+
+#TODO Son DC komut hatasi cozulecek.
 
 
 
-
-
-client.run('ODkzMTc3Mjg0MDQxNzg1MzQ0.YVXqKg.Y46_I2vQO7RfH_mJkEEBTbjpb_s')
-
+client.run('ODkzMTc3Mjg0MDQxNzg1MzQ0.GQ3D5C.nbS1fSZWbnrZaIPwIfJ0_7_frPR2ilhNrqjd50')
