@@ -1,2 +1,2 @@
-no;on;3;&//,Yaprak4;!**,Pati2,Yaprak2,Rex2,Pati5,Rex5,Yaprak5,Mod;|++,Rex3,Pati6,Vera,Rex6,Chandler,Mon,Barney
+no;on;3;&//,Yaprak4;!**,Pati2,Yaprak2,Rex2,Pati5,Rex5,Yaprak5,Mod,admin;|++,Rex3,Pati6,Vera,Rex6,Chandler,Mon,Barney
 ,yiğit,gaykaan,banana,apple,orange
