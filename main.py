@@ -10,6 +10,7 @@ import random
 import datetime
 import textwrap
 from github import Github  # Bu modül PyGithub modülüdür.
+import requests
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix="!dc ", intents=intents,help_command=None)
@@ -261,6 +262,14 @@ async def animal_fact(ctx, animal: str):
 
 
 meme_set = set()
+############ Anime ##############
+@client.command()
+async def wink(ctx):
+    
+    x = requests.get('https://w3schools.com/python/demopage.htm')
+
+    await ctx.send(x.text)
+
 
 
 @client.command(description="To use the command: !dc meme")
@@ -1383,11 +1392,10 @@ async def set_numswearwrds(ctx, number):
                             "Example: !dc mute @Harasiva 5h for trolling\n"
                             "Instead of hours you can use minutes(m) or seconds(s).")
 @has_any_role("admin", "Mod")
-@has_permissions(manage_messages=True)
 async def mute(ctx, member: discord.Member, time=None, *, reason=None):
     """Mutes the specified user.(Moderation)"""
     await ctx.send(f"{ctx.message.content},{ctx}")
-    print("Sj")
+    print("Sjj")
     if not member:
         await ctx.send("You must mention a member to mute!")
     elif not time:
@@ -1437,7 +1445,6 @@ async def mute(ctx, member: discord.Member, time=None, *, reason=None):
 
 @client.command(description="To use !dc unmute @membername\n"
                             "Example: !dc unmute @Harasiva")
-@has_permissions(manage_messages=True)
 @has_any_role("admin", "Mod")
 async def unmute(ctx, member: discord.Member):
     """Unmutes a specified user.(Moderation)"""
@@ -1566,7 +1573,7 @@ async def help(ctx,args=""):
         for x in event_liste:
             
             if liste[-1] == x:
-                stringg+= "-" + x + "," "\n\n"
+                stringg+= x + "," "\n\n"
             else:
                 stringg+= x + "\n,"
         help_embed2.add_field(name="Features",value=stringg)
